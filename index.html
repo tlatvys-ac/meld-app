@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meld — Figma boards into After Effects</title>
+<link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="images/favicon.png">
+<link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+<meta name="description" content="Meld is a free Figma plugin and After Effects panel that brings Figma boards into After Effects as live, editable layers: shapes, text, gradients, masks and precomps, with a named note for anything AE can't match.">
+<meta name="theme-color" content="#1E2024">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://tlatvys-ac.github.io/meld-app/">
+<meta property="og:title" content="Meld — Figma boards into After Effects">
+<meta property="og:description" content="A free Figma plugin and After Effects panel: push Figma boards into After Effects as live, editable layers.">
+<meta property="og:image" content="https://tlatvys-ac.github.io/meld-app/images/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Meld logo, a head with a bulging brain sending out thought waves, next to the Meld plugin toolbar in Figma and the Meld panel in After Effects">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+    :root {
+        --bg: #1E2024;
+        --surface: #2A2D33;
+        --border: #3E424A;
+        --text: #DDD;
+        --text-strong: #FFF;
+        --muted: #9BA1AA;
+        /* the logo: a chartreuse sticky note and black ink */
+        --accent: #D9E33B;
+        --accent-hover: #E6EE6E;
+        --on-accent: #151515;
+        --link: #E2EA6A;
+    }
+    * { box-sizing: border-box; }
+    html { overflow-x: clip; }
+    body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, "SF Pro Text", "Helvetica Neue", "Segoe UI", sans-serif;
+        font-size: 16px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+    }
+    .wrap {
+        max-width: 660px;
+        margin: 0 auto;
+        padding: 64px 24px 48px;
+    }
+    a { color: var(--link); text-underline-offset: 2px; }
+    a:hover { color: var(--accent-hover); }
+    :focus-visible {
+        outline: 2px solid var(--text-strong);
+        outline-offset: 3px;
+        border-radius: 4px;
+    }
+    h1, h2, h3, .tagline, figcaption { text-wrap: balance; }
+
+    /* ---------------------------------------------------------- hero */
+    .hero {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    .mark { width: 112px; height: 112px; }
+    h1 {
+        margin: 18px -0.3em 0 0;   /* cancel the trailing letter-spacing so it centers */
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: 0.3em;
+        line-height: 1.2;
+        color: var(--text-strong);
+    }
+    .tagline {
+        margin: 12px 0 0;
+        color: #B4B9C1;
+        font-size: 18px;
+        max-width: 460px;
+    }
+    .buttons {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+        margin-top: 28px;
+    }
+    .btn {
+        display: inline-block;
+        min-width: 296px;
+        text-align: center;
+        background: var(--accent);
+        border-radius: 8px;
+        color: var(--on-accent);
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 1.4;
+        padding: 12px 32px;
+        text-decoration: none;
+        box-shadow: 0 6px 24px rgba(217, 227, 59, 0.22);
+        transition: background-color 120ms, box-shadow 120ms, transform 120ms;
+        white-space: nowrap;
+    }
+    .btn:hover {
+        background: var(--accent-hover);
+        color: var(--on-accent);
+        box-shadow: 0 8px 32px rgba(217, 227, 59, 0.35);
+        transform: translateY(-1px);
+    }
+    .btn:active { transform: none; box-shadow: 0 4px 16px rgba(217, 227, 59, 0.22); }
+    /* the other platform's button: outlined, so the visitor's own stands out */
+    .btn.btn-secondary {
+        background: transparent;
+        color: var(--text-strong);
+        box-shadow: inset 0 0 0 1px var(--accent);
+    }
+    .btn.btn-secondary:hover {
+        background: rgba(217, 227, 59, 0.12);
+        color: var(--text-strong);
+        box-shadow: inset 0 0 0 1px var(--accent-hover);
+    }
+    .btn.btn-secondary small { color: var(--muted); }
+    .btn small {
+        display: block;
+        font-weight: 500;
+        font-size: 12px;
+        color: rgba(21, 21, 21, 0.72);
+    }
+    .hero-notes {
+        margin: 16px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.7;
+    }
+
+    /* ------------------------------------------------------ sections */
+    section { margin-top: 72px; }
+    h2.divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 0 0 24px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--muted);
+    }
+    h2.divider::before, h2.divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+    }
+    h3 {
+        margin: 32px 0 8px;
+        font-size: 17px;
+        font-weight: 700;
+        line-height: 1.4;
+        color: var(--text-strong);
+    }
+    p { margin: 0 0 12px; }
+    .lead { font-size: 17px; }
+    .fine { color: var(--muted); font-size: 14px; }
+    strong { color: var(--text-strong); }
+
+    /* ------------------------------------------------------- gallery */
+    /* Renders break out of the text column. */
+    .gallery {
+        width: min(1080px, calc(100vw - 48px));
+        margin-left: 50%;
+        transform: translateX(-50%);
+    }
+    .gallery h3 {
+        margin: 40px 0 14px;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        text-align: center;
+    }
+    .gallery h3:first-child { margin-top: 0; }
+    .shots {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+    .shots.three { grid-template-columns: repeat(3, 1fr); }
+    .shots.four { grid-template-columns: repeat(4, 1fr); }
+    @media (max-width: 900px) { .shots.four { grid-template-columns: 1fr 1fr; } }
+    .shots figure { margin: 0; }
+    .shot {
+        display: block;
+        width: 100%;
+        padding: 0;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--surface);
+        overflow: hidden;
+        cursor: zoom-in;
+        transition: border-color 120ms;
+    }
+    .shot:hover { border-color: var(--accent); }
+    .shot:focus-visible { border-radius: 10px; }
+    .shot img {
+        display: block;
+        width: 100%;
+        height: auto;
+    }
+    .shots figcaption {
+        margin-top: 8px;
+        font-size: 13px;
+        color: var(--muted);
+        text-align: center;
+    }
+    .shots figcaption strong { font-weight: 600; }
+
+    /* ------------------------------------------------------ features */
+    .features {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+    .features li {
+        padding: 16px 18px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        font-size: 15px;
+        line-height: 1.5;
+    }
+    .features li strong {
+        display: block;
+        margin-bottom: 2px;
+        font-size: 16px;
+    }
+
+    /* --------------------------------------------------------- setup */
+    .steps {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: step;
+    }
+    .steps li {
+        position: relative;
+        margin-bottom: 16px;
+        padding-left: 44px;
+        counter-increment: step;
+    }
+    .steps li::before {
+        content: counter(step);
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--c);
+        color: var(--on-accent);
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 28px;
+        text-align: center;
+    }
+    .steps li { --c: var(--accent); }
+
+    .callout {
+        margin: 28px 0 0;
+        padding: 16px 20px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        border-radius: 8px;
+        scroll-margin-top: 24px;
+    }
+    .callout h3 { margin: 0 0 6px; font-size: 16px; }
+    .callout p { margin: 0 0 8px; font-size: 15px; }
+    .callout p:last-child { margin-bottom: 0; }
+
+    details {
+        margin-top: 16px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+    }
+    summary {
+        padding: 14px 20px;
+        font-weight: 600;
+        color: var(--text-strong);
+        cursor: pointer;
+        list-style: none;
+    }
+    summary::-webkit-details-marker { display: none; }
+    summary::before {
+        content: "";
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        margin: 0 12px 2px 0;
+        border-right: 2px solid var(--muted);
+        border-bottom: 2px solid var(--muted);
+        transform: rotate(-45deg);
+        transition: transform 120ms;
+    }
+    details[open] summary::before { transform: rotate(45deg); }
+    .details-body { padding: 0 20px 18px; }
+    .details-body h3 { margin: 12px 0 6px; font-size: 16px; }
+    .details-body h3 ~ h3 { margin-top: 24px; }
+
+    .path {
+        display: flex;
+        align-items: stretch;
+        margin: 8px 0 12px;
+        background: #17191C;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+    }
+    .path code {
+        flex: 1;
+        min-width: 0;
+        padding: 9px 12px;
+        overflow-x: auto;
+        white-space: nowrap;
+        font: 13px/1.5 ui-monospace, "SF Mono", Menlo, monospace;
+        color: var(--text);
+    }
+    .copy {
+        flex: none;
+        padding: 0 14px;
+        border: 0;
+        border-left: 1px solid var(--border);
+        border-radius: 0 6px 6px 0;
+        background: transparent;
+        color: var(--link);
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .copy:hover { background: var(--surface); }
+
+    /* ------------------------------------------------------ lightbox */
+    .lightbox {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(10, 11, 13, 0.92);
+        z-index: 100;
+        cursor: zoom-out;
+        padding: 24px;
+    }
+    .lightbox[hidden] { display: none; }
+    .lightbox img {
+        max-width: 96vw;
+        max-height: 92vh;
+        width: auto;
+        height: auto;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6);
+    }
+    .lightbox-close {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        width: 40px;
+        height: 40px;
+        border: 1px solid var(--border);
+        border-radius: 50%;
+        background: var(--surface);
+        color: var(--text-strong);
+        font-size: 22px;
+        line-height: 1;
+        cursor: pointer;
+    }
+
+    /* --------------------------------------------------- hero image */
+    /* Breaks out of the text column, like the gallery. */
+    .hero-media {
+        position: relative;
+        flex: none;
+        width: min(756px, calc(100vw - 48px));
+        margin-top: 44px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        background: #16171A;
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+    }
+    .hero-media img { display: block; width: 100%; height: auto; }
+
+    /* -------------------------------------------------------- footer */
+    footer {
+        margin-top: 88px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border);
+        text-align: center;
+        color: var(--muted);
+        font-size: 13px;
+    }
+    footer p { margin: 0 0 6px; }
+    footer a { text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+    .sep { margin: 0 6px; opacity: 0.5; }
+
+    @media (max-width: 620px) {
+        .wrap { padding-top: 48px; }
+        .shots, .shots.three, .shots.four, .features { grid-template-columns: 1fr; }
+        section { margin-top: 56px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        * { transition: none !important; }
+    }
+    .steps ul.sub { margin: 6px 0 0; padding-left: 18px; }
+    .steps ul.sub li { padding-left: 0; margin-bottom: 4px; counter-increment: none; }
+    .steps ul.sub li::before { content: none; }
+    code { font: 14px ui-monospace, "SF Mono", Menlo, monospace; color: var(--text-strong); }
+    kbd { font: inherit; }
+    .alt-downloads { margin: 10px 0 0; font-size: 14px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+    <header class="hero">
+        <img class="mark" src="images/logo.svg" alt="" width="112" height="112">
+        <h1>MELD</h1>
+        <p class="tagline">Push Figma boards into After&nbsp;Effects as live, editable layers</p>
+        <div class="buttons">
+            <a class="btn" id="dl-bundle" href="https://github.com/tlatvys-ac/meld-app/releases/latest/download/Meld-0.2.0.zip">
+                Download Meld
+                <small>AE panel + Figma plugin (.zip) · free</small>
+            </a>
+        </div>
+        <p class="hero-notes">
+            Made for macOS. The AE panel's installer may show a certificate notice.
+            <a href="#unsigned">What to expect</a>
+        </p>
+        <div class="hero-media">
+            <picture>
+                <source type="image/avif" srcset="images/hero.avif">
+                <img src="images/hero.jpg" width="1512" height="840" decoding="async" fetchpriority="high" alt="The Meld plugin toolbar in Figma, with four square buttons and a status reading Built in AE with 3 notes, sending to the Meld panel in After Effects, which lists the build of Pricing / Desktop: 148 layers, 6 bitmaps, 2 precomps, and three fidelity notes">
+            </picture>
+        </div>
+    </header>
+
+    <main>
+    <section>
+        <h2 class="divider">About</h2>
+        <p class="lead">Meld turns a Figma board into an After Effects comp
+        that matches it as closely as After Effects allows. Shapes, text,
+        gradients, masks and groups arrive as real, editable layers you can
+        animate right away. Whatever After Effects can't rebuild comes over
+        as a crisp bitmap, and Meld tells you exactly which layers those
+        are and why.</p>
+        <p>It's two small pieces that talk on your own machine: a Figma
+        plugin with four buttons, and a panel in After Effects that
+        receives what you send.</p>
+    </section>
+
+    <section>
+        <h2 class="divider">What it looks like</h2>
+        <div class="gallery">
+            <div class="shots four">
+                <figure>
+                    <button class="shot" type="button" aria-haspopup="dialog">
+                        <picture>
+                            <source type="image/avif" srcset="images/modes.avif">
+                            <img src="images/modes.jpg" width="1050" height="1350" loading="lazy" decoding="async" alt="The Meld plugin with its push menu open: Push Selection, layers as in Figma, checked; Split Layers, one layer per shape piece; Single Layer, all shapes in one layer">
+                        </picture>
+                    </button>
+                    <figcaption><strong>Push modes</strong> — hold Push in Figma to pick one</figcaption>
+                </figure>
+                <figure>
+                    <button class="shot" type="button" aria-haspopup="dialog">
+                        <picture>
+                            <source type="image/avif" srcset="images/settings.avif">
+                            <img src="images/settings.jpg" width="1050" height="1350" loading="lazy" decoding="async" alt="The Meld plugin's settings: push mode, bitmap resolution 2x, live text, missing fonts as bitmaps, Figma reference layer, bring AE to front after sending, and a Mark as bitmap button for the selection">
+                        </picture>
+                    </button>
+                    <figcaption><strong>Settings</strong> — behind the plugin's gear</figcaption>
+                </figure>
+                <figure>
+                    <button class="shot" type="button" aria-haspopup="dialog">
+                        <picture>
+                            <source type="image/avif" srcset="images/notes.avif">
+                            <img src="images/notes.jpg" width="1050" height="1350" loading="lazy" decoding="async" alt="The notes from a push of Pricing / Desktop: 148 layers, 6 bitmaps, 2 precomps; Hero photo sent as a bitmap for its image fill; Headline sent as a bitmap because its font isn't installed for After Effects; Plan card's shadow spread baked into its background bitmap">
+                        </picture>
+                    </button>
+                    <figcaption><strong>Notes</strong> — every approximation, named by layer</figcaption>
+                </figure>
+                <figure>
+                    <button class="shot" type="button" aria-haspopup="dialog">
+                        <picture>
+                            <source type="image/avif" srcset="images/panel.avif">
+                            <img src="images/panel.jpg" width="1050" height="1350" loading="lazy" decoding="async" alt="The Meld panel in After Effects, Ready on port 7391, listing three arrivals: Pricing / Desktop with its three fidelity notes, a rasterized Badge placed into Pricing / Desktop, and Onboarding / Step 2">
+                        </picture>
+                    </button>
+                    <figcaption><strong>The AE panel</strong> — receives each push and keeps a history</figcaption>
+                </figure>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2 class="divider">Features</h2>
+        <ul class="features">
+            <li><strong>Live, editable layers</strong>Shapes, text, gradients, masks, nulls and precomps, built the way you'd build them by hand</li>
+            <li><strong>Text stays text</strong>Fonts, size, tracking, leading, caps and mixed styles, lined up on Figma's own glyphs</li>
+            <li><strong>Bitmaps only where needed</strong>Image fills, angular gradients, inner shadows and the rest arrive as crisp <span style="white-space:nowrap">1–4×</span> bitmaps</li>
+            <li><strong>Nothing changed silently</strong>Every approximation is a named note, and a hidden Figma Reference layer lets you compare</li>
+            <li><strong>Three push modes</strong>Push Selection, Split Layers (one layer per shape piece) or Single Layer (shapes combined)</li>
+            <li><strong>Rasterize into the active comp</strong>Exactly where the layer sits in its frame, and whole even where the board crops it</li>
+            <li><strong>Comps and frames, both ways</strong>Make a comp from a Figma frame, or a Figma frame from the active comp</li>
+            <li><strong>Straight back to After Effects</strong>After Effects comes to the front as soon as a push lands</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2 class="divider">Setup</h2>
+        <ol class="steps">
+            <li><strong>Download and unzip Meld.</strong> Keep the
+                <em>Meld Figma Plugin</em> folder somewhere permanent: Figma
+                loads the plugin from it.</li>
+            <li><strong>Install the After Effects panel.</strong> Open
+                <code>Meld_v<span class="v">0.2.0</span>.zxp</code> with a ZXP installer
+                (<a href="https://aescripts.com/learn/zxp-installer/">aescripts
+                ZXP Installer</a> is free).</li>
+            <li><strong>Open the panel.</strong> Restart After Effects and
+                choose <em>Window&nbsp;→ Extensions&nbsp;→ Meld</em>. Leave it
+                open while you work: it's what receives your pushes.</li>
+            <li><strong>Add the Figma plugin.</strong> In the Figma desktop
+                app, choose <em>Plugins&nbsp;→ Development&nbsp;→ Import plugin
+                from manifest…</em> and pick <code>manifest.json</code> in the
+                <em>Meld Figma Plugin</em> folder.</li>
+            <li><strong>Push.</strong> Select a frame, run
+                <em>Plugins&nbsp;→ Development&nbsp;→ Meld</em>, and press
+                Push. The board arrives as a new comp and After Effects comes
+                to the front.</li>
+        </ol>
+
+        <div class="callout" id="unsigned">
+            <h3>If the installer warns you</h3>
+            <p>The After Effects panel is signed with a self-signed
+            certificate, so your ZXP installer may show an "unverified
+            publisher" notice. That's expected; go ahead and install.</p>
+            <p>Nothing else needs approving: the Figma plugin is a folder of
+            plain files, and Figma lists it under <em>Development</em>
+            because it's installed from your Mac instead of the Figma
+            Community.</p>
+        </div>
+
+        <details>
+            <summary>Advanced and uninstalling</summary>
+            <div class="details-body">
+                <h3>Separate downloads</h3>
+                <p class="fine">The two pieces on their own:
+                <a id="dl-zxp" href="https://github.com/tlatvys-ac/meld-app/releases/latest/download/Meld_v0.2.0.zxp">After Effects panel (.zxp)</a> ·
+                <a id="dl-figma" href="https://github.com/tlatvys-ac/meld-app/releases/latest/download/Meld-Figma-Plugin-0.2.0.zip">Figma plugin (.zip)</a></p>
+                <h3>Where things go</h3>
+                <p class="fine">Bitmaps are saved in a <em>Meld Assets</em>
+                folder next to your After Effects project (or in
+                <em>Documents</em> for an unsaved project), and everything
+                Meld builds goes in a <em>Meld</em> folder in the Project
+                panel.</p>
+                <h3>Uninstalling</h3>
+                <p class="fine">Remove the panel with your ZXP installer, or
+                delete the <em>Meld</em> folder it installed, in one of
+                these:</p>
+                <div class="path">
+                    <code id="install-path">~/Library/Application Support/Adobe/CEP/extensions/Meld</code>
+                    <button class="copy" type="button" data-copy="install-path">Copy</button>
+                </div>
+                <div class="path">
+                    <code id="install-path-all">/Library/Application Support/Adobe/CEP/extensions/Meld</code>
+                    <button class="copy" type="button" data-copy="install-path-all">Copy</button>
+                </div>
+                <p class="fine">In Figma, open <em>Plugins&nbsp;→ Manage
+                plugins</em> and remove Meld from <em>Development</em>.</p>
+            </div>
+        </details>
+    </section>
+
+    <section>
+        <h2 class="divider">Requirements</h2>
+        <p class="fine">macOS · After Effects 2023 or later (developed and
+        tested on After Effects 2026 and 2027) · the Figma desktop app
+        (Figma runs development plugins only there). Everything stays on
+        your Mac: the plugin talks only to the Meld panel, on your own
+        machine. No accounts, no uploads.</p>
+    </section>
+    </main>
+
+    <footer>
+        <p>Meld <span id="version">v0.2.0</span><span class="sep">·</span><wbr><a href="https://github.com/tlatvys-ac/meld-app/releases">Release notes</a><span class="sep">·</span><wbr>Made&nbsp;by&nbsp;Thomas&nbsp;Latvys</p>
+        <p>More tools:
+            <a href="https://tlatvys-ac.github.io/fluidlab-app/">FluidLab</a><span class="sep">·</span><wbr><a href="https://tlatvys-ac.github.io/refractlab-app/">RefractLab</a><span class="sep">·</span><wbr><a href="https://tlatvys-ac.github.io/anchor-buddy-app/">Anchor&nbsp;Buddy</a><span class="sep">·</span><wbr><a href="https://tlatvys-ac.github.io/transporter-app/">Transporter</a><span class="sep">·</span><wbr><a href="https://tlatvys-ac.github.io/aedoom-app/">AEDoom</a><span class="sep">·</span><wbr><a href="https://tlatvys-ac.github.io/motionref-app/">MotionRef</a>
+        </p>
+    </footer>
+</div>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Screenshot preview" hidden>
+    <img id="lightbox-img" src="" alt="">
+    <button class="lightbox-close" id="lightbox-close" type="button" aria-label="Close preview">×</button>
+</div>
+
+<script>
+// Click (or Enter/Space on) a screenshot to preview it at full size;
+// click anywhere, press Escape, or use the close button to close. Focus
+// moves into the preview and back to the screenshot that opened it.
+(() => {
+    const box = document.getElementById("lightbox");
+    const big = document.getElementById("lightbox-img");
+    const closeBtn = document.getElementById("lightbox-close");
+    let opener = null;
+    const open = (btn) => {
+        const img = btn.querySelector("img");
+        big.src = img.currentSrc || img.src;
+        big.alt = img.alt;
+        opener = btn;
+        box.hidden = false;
+        document.body.style.overflow = "hidden";
+        closeBtn.focus();
+    };
+    const close = () => {
+        if (box.hidden) return;
+        box.hidden = true;
+        document.body.style.overflow = "";
+        if (opener) opener.focus();
+    };
+    document.querySelectorAll(".shot").forEach((btn) => btn.addEventListener("click", () => open(btn)));
+    box.addEventListener("click", close);
+    document.addEventListener("keydown", (e) => {
+        if (box.hidden) return;
+        if (e.key === "Escape") close();
+        if (e.key === "Tab") { e.preventDefault(); closeBtn.focus(); }
+    });
+})();
+
+// Copy the uninstall path.
+document.querySelectorAll(".copy").forEach((btn) => {
+    btn.addEventListener("click", () => {
+        const text = document.getElementById(btn.dataset.copy).textContent;
+        const done = () => {
+            btn.textContent = "Copied";
+            setTimeout(() => { btn.textContent = "Copy"; }, 1500);
+        };
+        if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, () => {});
+    });
+});
+
+// Keep the version and download links pointing at the latest release
+// automatically; the hardcoded values above are the fallback if this
+// fetch fails.
+fetch("https://api.github.com/repos/tlatvys-ac/meld-app/releases/latest")
+    .then((r) => r.json())
+    .then((rel) => {
+        const v = (rel.tag_name || "").replace(/^v/, "");
+        if (v) {
+            document.getElementById("version").textContent = "v" + v;
+            document.querySelectorAll(".v").forEach((el) => { el.textContent = v; });
+        }
+        const assets = rel.assets || [];
+        const link = (id, re) => {
+            const a = assets.find((x) => re.test(x.name));
+            if (a) document.getElementById(id).href = a.browser_download_url;
+        };
+        link("dl-bundle", /^Meld-[\d.]+\.zip$/);
+        link("dl-zxp", /\.zxp$/);
+        link("dl-figma", /^Meld-Figma-Plugin-[\d.]+\.zip$/);
+    })
+    .catch(() => {});
+</script>
+</body>
+</html>

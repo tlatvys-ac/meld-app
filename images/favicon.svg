@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <rect width="120" height="120" rx="27" fill="#D9E33B"/>
+  <g fill="none" stroke="#151515" stroke-linecap="round" stroke-linejoin="round">
+    <!-- head: a huge bulging brain over a small face -->
+    <path stroke-width="7" d="M38 66 C26 58 22 30 40 18 C58 4 96 4 106 26 C114 44 104 60 92 64 C86 68 88 78 88 86 C88 100 74 108 58 106 C44 104 38 96 39 90 L36 85 L31 80 Q35 76 37 73 Q37 69 38 66Z"/>
+    <!-- thoughts: waves sent out from the forehead -->
+    <g stroke-width="6">
+      <path d="M22.34 30.57 A10 10 0 0 0 21.81 42.74"/>
+      <path d="M14.61 19.91 A23 23 0 0 0 12.38 51.78"/>
+    </g>
+    <!-- face: eye shut in concentration, brow, ear, mouth -->
+    <g stroke-width="6">
+      <path d="M42 77 Q47 81 52 77"/>
+    </g>
+  </g>
+</svg>

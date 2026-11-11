@@ -1,0 +1,86 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+  html,body{margin:0;height:100%}
+  body{font-family:-apple-system,"SF Pro Text","Helvetica Neue",sans-serif;overflow:hidden;
+    background:radial-gradient(120% 90% at 18% 30%,#2b2f24 0%,#1d1f23 45%,#16171a 100%);position:relative}
+  .win{position:absolute;border-radius:12px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.08)}
+  .fig{background:#2c2c2c}
+  .fig .bar{height:40px;display:flex;align-items:center;gap:8px;padding:0 12px 0 14px;color:#fff;font-size:13px;font-weight:600;border-bottom:1px solid #3a3a3a}
+  .fig .bar img{width:18px;height:18px;border-radius:4px}
+  .fig .bar .x{margin-left:auto;font-size:18px;font-weight:300;opacity:.8}
+  .fig iframe{display:block;border:0;width:228px}
+  .ae{background:#232323}
+  .ae .bar{height:30px;display:flex;align-items:flex-end;background:#1b1b1b;padding-left:8px}
+  .ae .tab{color:#ddd;font-size:12px;padding:0 12px 7px;border-bottom:2px solid #4b8fe8}
+  .ae iframe{display:block;border:0}
+  .waves{position:absolute}
+  .label{position:absolute;color:#8f949c;font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
+</style></head><body>
+<script>
+const q = new URLSearchParams(location.search);
+if (q.get("bare")) document.documentElement.style.cssText = "background:transparent", document.body.style.background = "transparent";
+const scene = q.get("scene");
+function figWin(x, y, ui, h) {
+  const w = document.createElement("div");
+  w.className = "win fig"; w.style.left = x + "px"; w.style.top = y + "px";
+  w.innerHTML = '<div class="bar"><img src="logo.svg" alt="">Meld<span class="x">×</span></div><iframe id="fig" src="' + ui + '" style="height:' + h + 'px"></iframe>';
+  document.body.appendChild(w);
+  const f = w.querySelector("iframe");
+  window.addEventListener("message", (e) => {
+    const m = e.data && e.data.pluginMessage;
+    if (m && m.type === "resize") f.style.height = m.height + "px";
+  });
+  f.onload = () => {
+    const to = (m) => f.contentWindow.postMessage({ pluginMessage: m }, "*");
+    window.toUI = to;
+    to({ type: "settings", settings: { scale: 2, text: "live", reference: true, missingFonts: "bitmap", push: "selection", focusAE: true } });
+    to({ type: "selection", count: 1, names: ["Pricing / Desktop"], marked: 0 });
+  };
+  return w;
+}
+function aeWin(x, y, w, h) {
+  // (returns the window element)
+  const d = document.createElement("div");
+  d.className = "win ae"; d.style.left = x + "px"; d.style.top = y + "px";
+  d.innerHTML = '<div class="bar"><span class="tab">Meld ≡</span></div><iframe src="panel.html" style="width:' + w + 'px;height:' + h + 'px"></iframe>';
+  document.body.appendChild(d);
+  return d;
+}
+function waves(x, y, s) {
+  const n = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  n.setAttribute("class", "waves"); n.setAttribute("viewBox", "0 0 60 60");
+  n.style.left = x + "px"; n.style.top = y + "px"; n.style.width = n.style.height = s + "px";
+  n.innerHTML = '<g fill="none" stroke="#D9E33B" stroke-width="3.5" stroke-linecap="round">' +
+    [10, 18, 26].map((r, i) => { const a = 38 * Math.PI / 180, cx = 8, cy = 30;
+      return '<path opacity="' + (1 - i * 0.28) + '" d="M' + (cx + r * Math.cos(a)) + ' ' + (cy - r * Math.sin(a)) +
+        ' A' + r + ' ' + r + ' 0 0 1 ' + (cx + r * Math.cos(a)) + ' ' + (cy + r * Math.sin(a)) + '"/>'; }).join("") + '</g>';
+  document.body.appendChild(n);
+}
+function label(x, y, t) {
+  const l = document.createElement("div");
+  l.className = "label"; l.style.left = x + "px"; l.style.top = y + "px"; l.textContent = t;
+  document.body.appendChild(l);
+}
+if (scene === "hero") {
+  label(70, 112, "Figma");
+  figWin(70, 136, "ui-dark.html", 96);
+  waves(330, 148, 74);
+  label(430, 26, "After Effects");
+  aeWin(430, 50, 286, 326);
+} else if (scene === "panel") {
+  const w = aeWin(0, 0, 286, 392);
+} else {
+  figWin(0, 0, "ui-dark.html", 96);
+}
+// close-ups: magnify the window and center it in the tile (vector UI, so it stays sharp)
+const z = +(q.get("zoom") || 1);
+if (scene !== "hero") {
+  const win = document.querySelector(".win");
+  win.style.zoom = z;
+  const place = () => {
+    win.style.left = (innerWidth / z - win.offsetWidth) / 2 + "px";
+    win.style.top = (innerHeight / z - win.offsetHeight) / 2 + "px";
+  };
+  place();
+  new ResizeObserver(place).observe(win);
+}
+</script></body></html>
